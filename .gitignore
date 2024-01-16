@@ -5,6 +5,7 @@
 /tmp.py
 /asciinema_casts
 /data
+/tmp
 
 *.egg-info
 __pycache__
