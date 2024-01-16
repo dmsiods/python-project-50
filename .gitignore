@@ -1,0 +1,14 @@
+.idea
+.github
+.venv
+
+/tmp.py
+/asciinema_casts
+
+*.egg-info
+__pycache__
+dist/
+*.pyc
+.coverage
+coverage.xml
+.pytest_cache/
