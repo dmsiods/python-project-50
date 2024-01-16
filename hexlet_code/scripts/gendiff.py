@@ -55,7 +55,7 @@ def generate_diff(file_path1, file_path2):
         else:
             raise Exception('Smth has gone wrong!')
 
-    result_list.append('}\n')
+    result_list.append('}')
 
     return '\n'.join(result_list)
 
