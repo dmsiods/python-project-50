@@ -42,7 +42,10 @@ def _get_data_statistic(old_data, new_data):
             if old_data[key] == new_data[key]:
                 statistic['same'][key] = new_data[key]
             else:
-                statistic['changed'][key] = {'old': old_data[key], 'new': new_data[key]}
+                statistic['changed'][key] = {
+                    'old': old_data[key],
+                    'new': new_data[key],
+                }
         elif key in old_keys:
             statistic['removed'][key] = old_data[key]
         else:
