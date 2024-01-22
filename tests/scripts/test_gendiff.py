@@ -1,14 +1,15 @@
 from gendiff.scripts.gendiff import generate_diff
-from pytest import fixture
+import pytest
 
 
-@fixture(name='result1')
-def _result1():
-    with open('tests/fixtures/result1.txt') as result_file:
-        result = result_file.read()
+@pytest.mark.parametrize(
+    "file1,file2,file_expected",
+    [
+        ('tests/fixtures/file11.json', 'tests/fixtures/file12.json', 'tests/fixtures/result1.txt')
+    ]
+)
+def test_generate_diff(file1, file2, file_expected):
+    with open(file_expected) as file:
+        expected = file.read()
 
-    return result
-
-
-def test_generate_diff(result1):
-    assert generate_diff('tests/fixtures/file11.json', 'tests/fixtures/file12.json') == result1
+    assert generate_diff('tests/fixtures/file11.json', 'tests/fixtures/file12.json') == expected
