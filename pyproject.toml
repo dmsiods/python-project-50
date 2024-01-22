@@ -4,13 +4,16 @@ version = "0.1.0"
 description = ""
 authors = ["dima <dmsiods0@gmail.com>"]
 readme = "README.md"
+packages = [
+  { include = "gendiff" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 
 
 [tool.poetry.scripts]
-gendiff = "hexlet_code.scripts.gendiff:main"
+gendiff = "gendiff.scripts.gendiff:main"
 
 
 [build-system]
