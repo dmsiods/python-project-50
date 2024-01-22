@@ -23,37 +23,46 @@ def _get_json_by_path(json_path):
     return data
 
 
-def generate_diff(file_path1, file_path2):
-    old_data = _get_json_by_path(file_path1)
-    new_data = _get_json_by_path(file_path2)
+def _get_data_statistic(old_data, new_data):
+    statistic = {}
 
     old_keys = set(old_data.keys())
     new_keys = set(new_data.keys())
 
-    union_keys = new_keys.union(old_keys)
-    changed_value_keys, same_value_keys = set(), set()
+    statistic['union_keys'] = list(new_keys.union(old_keys))
+    statistic['changed_keys'], statistic['same_keys'] = set(), set()
 
-    for key in union_keys:
+    for key in statistic['union_keys']:
         if key in old_keys and key in new_keys:
             if old_data[key] == new_data[key]:
-                same_value_keys.add(key)
+                statistic['same_keys'].add(key)
             else:
-                changed_value_keys.add(key)
+                statistic['changed_keys'].add(key)
 
-    removed_value_keys = old_keys.difference(new_keys)
-    added_value_keys = new_keys.difference(old_keys)
+    statistic['removed_keys'] = old_keys.difference(new_keys)
+    statistic['added_keys'] = new_keys.difference(old_keys)
 
-    sorted_union_keys = sorted(union_keys)
+    statistic['union_keys'] = sorted(statistic['union_keys'])
+
+    return statistic
+
+
+def generate_diff(file_path1, file_path2):
+    old_data = _get_json_by_path(file_path1)
+    new_data = _get_json_by_path(file_path2)
+
+    statistic = _get_data_statistic(old_data, new_data)
+
     result_list = ['{']
 
-    for key in sorted_union_keys:
-        if key in same_value_keys:
+    for key in statistic['union_keys']:
+        if key in statistic['same_keys']:
             result_list.append(f'    {key}: {str(old_data[key]).lower()}')
-        elif key in removed_value_keys:
+        elif key in statistic['removed_keys']:
             result_list.append(f'  - {key}: {str(old_data[key]).lower()}')
-        elif key in added_value_keys:
+        elif key in statistic['added_keys']:
             result_list.append(f'  + {key}: {str(new_data[key]).lower()}')
-        elif key in changed_value_keys:
+        elif key in statistic['changed_keys']:
             result_list.append(f'  - {key}: {str(old_data[key]).lower()}')
             result_list.append(f'  + {key}: {str(new_data[key]).lower()}')
         else:
