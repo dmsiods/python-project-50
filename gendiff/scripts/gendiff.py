@@ -16,12 +16,16 @@ def main():
     return generate_diff(args.first_file, args.second_file)
 
 
-def generate_diff(file_path1, file_path2):
-    with open(file_path1) as file:
-        old_data = json.load(file)
+def _get_json_by_path(json_path):
+    with open(json_path) as file:
+        data = json.load(file)
 
-    with open(file_path2) as file:
-        new_data = json.load(file)
+    return data
+
+
+def generate_diff(file_path1, file_path2):
+    old_data = _get_json_by_path(file_path1)
+    new_data = _get_json_by_path(file_path2)
 
     old_keys = set(old_data.keys())
     new_keys = set(new_data.keys())
