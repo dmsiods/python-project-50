@@ -24,27 +24,57 @@ def _get_json_by_path(json_path):
 
 
 def _get_data_statistic(old_data, new_data):
-    statistic = {}
+    statistic = {
+        'union_keys': {},
+        'changed': {},
+        'same': {},
+        'removed': {},
+        'added': {},
+    }
 
     old_keys = set(old_data.keys())
     new_keys = set(new_data.keys())
 
-    statistic['union_keys'] = list(new_keys.union(old_keys))
-    statistic['changed_keys'], statistic['same_keys'] = set(), set()
+    statistic['union_keys'] = new_keys.union(old_keys)
 
     for key in statistic['union_keys']:
         if key in old_keys and key in new_keys:
             if old_data[key] == new_data[key]:
-                statistic['same_keys'].add(key)
+                statistic['same'][key] = new_data[key]
             else:
-                statistic['changed_keys'].add(key)
-
-    statistic['removed_keys'] = old_keys.difference(new_keys)
-    statistic['added_keys'] = new_keys.difference(old_keys)
-
-    statistic['union_keys'] = sorted(statistic['union_keys'])
+                statistic['changed'][key] = {'old': old_data[key], 'new': new_data[key]}
+        elif key in old_keys:
+            statistic['removed'][key] = old_data[key]
+        else:
+            statistic['added'][key] = new_data[key]
 
     return statistic
+
+
+def _generate_result_string(statistic):
+    result_list = ['{']
+
+    for key in sorted(statistic['union_keys']):
+        if key in statistic['same']:
+            val = str(statistic['same'][key]).lower()
+            result_list.append(f'    {key}: {val}')
+        elif key in statistic['removed']:
+            val = str(statistic['removed'][key]).lower()
+            result_list.append(f'  - {key}: {val}')
+        elif key in statistic['added']:
+            val = str(statistic['added'][key]).lower()
+            result_list.append(f'  + {key}: {val}')
+        elif key in statistic['changed']:
+            old_val = str(statistic['changed'][key]['old']).lower()
+            new_val = str(statistic['changed'][key]['new']).lower()
+            result_list.append(f'  - {key}: {old_val}')
+            result_list.append(f'  + {key}: {new_val}')
+        else:
+            raise Exception('Smth has gone wrong!')
+
+    result_list.append('}')
+
+    return '\n'.join(result_list)
 
 
 def generate_diff(file_path1, file_path2):
@@ -53,24 +83,7 @@ def generate_diff(file_path1, file_path2):
 
     statistic = _get_data_statistic(old_data, new_data)
 
-    result_list = ['{']
-
-    for key in statistic['union_keys']:
-        if key in statistic['same_keys']:
-            result_list.append(f'    {key}: {str(old_data[key]).lower()}')
-        elif key in statistic['removed_keys']:
-            result_list.append(f'  - {key}: {str(old_data[key]).lower()}')
-        elif key in statistic['added_keys']:
-            result_list.append(f'  + {key}: {str(new_data[key]).lower()}')
-        elif key in statistic['changed_keys']:
-            result_list.append(f'  - {key}: {str(old_data[key]).lower()}')
-            result_list.append(f'  + {key}: {str(new_data[key]).lower()}')
-        else:
-            raise Exception('Smth has gone wrong!')
-
-    result_list.append('}')
-
-    return '\n'.join(result_list)
+    return _generate_result_string(statistic)
 
 
 if __name__ == '__main__':
