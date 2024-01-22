@@ -1,15 +1,13 @@
 .idea
-.github
 .venv
 
-/tmp.py
 /asciinema_casts
 /data
 /tmp
+/dist
 
 *.egg-info
 __pycache__
-dist/
 *.pyc
 .coverage
 coverage.xml

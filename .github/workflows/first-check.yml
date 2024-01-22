@@ -1,0 +1,21 @@
+name: first-check
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10.4
+      - name: Install dependencies
+        run: |
+          pip install poetry
+          poetry install
+      - name: Run linter and pytest
+        run: |
+          make lint
+          make test
