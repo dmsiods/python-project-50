@@ -9,8 +9,7 @@ self-check:
 
 check: self-check lint test
 
+test-coverage:
+	poetry run pytest --cov=gendiff --cov-report xml
 
-#test-coverage:
-#	poetry run pytest --cov=gendiff --cov-report xml
-
-.PHONY: install test lint selfcheck check build
+.PHONY: test lint self-check check build
