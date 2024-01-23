@@ -18,54 +18,60 @@ def main():
 
 
 def _get_data_statistic(old_data, new_data):
-    statistic = {
-        'union_keys': {},
-        'changed': {},
-        'same': {},
-        'removed': {},
-        'added': {},
-    }
+    statistic = {}
 
     old_keys = set(old_data.keys())
     new_keys = set(new_data.keys())
+    union_keys = new_keys.union(old_keys)
 
-    statistic['union_keys'] = new_keys.union(old_keys)
-
-    for key in statistic['union_keys']:
+    for key in union_keys:
         if key in old_keys and key in new_keys:
             if old_data[key] == new_data[key]:
-                statistic['same'][key] = new_data[key]
+                statistic[key] = {'status': 'same', 'curr_value': new_data[key]}
             else:
-                statistic['changed'][key] = {
-                    'old': old_data[key],
-                    'new': new_data[key],
+                statistic[key] = {
+                    'status': 'changed',
+                    'prev_value': old_data[key],
+                    'curr_value': new_data[key],
                 }
         elif key in old_keys:
-            statistic['removed'][key] = old_data[key]
+            statistic[key] = {'status': 'removed', 'prev_value': old_data[key]}
         else:
-            statistic['added'][key] = new_data[key]
+            statistic[key] = {'status': 'added', 'curr_value': new_data[key]}
 
     return statistic
+
+
+def _modify_values_for_output(value):
+    result = value
+
+    if isinstance(value, bool):
+        result = str(value).lower()
+    elif value is None:
+        result = 'null'
+
+    return result
 
 
 def _generate_result_string(statistic):
     result_list = ['{']
 
-    for key in sorted(statistic['union_keys']):
-        if key in statistic['same']:
-            val = str(statistic['same'][key]).lower()
-            result_list.append(f'    {key}: {val}')
-        elif key in statistic['removed']:
-            val = str(statistic['removed'][key]).lower()
-            result_list.append(f'  - {key}: {val}')
-        elif key in statistic['added']:
-            val = str(statistic['added'][key]).lower()
-            result_list.append(f'  + {key}: {val}')
-        elif key in statistic['changed']:
-            old_val = str(statistic['changed'][key]['old']).lower()
-            new_val = str(statistic['changed'][key]['new']).lower()
-            result_list.append(f'  - {key}: {old_val}')
-            result_list.append(f'  + {key}: {new_val}')
+    for key in sorted(statistic.keys()):
+        prev_value = statistic[key].get('prev_value', None)
+        prev_value = _modify_values_for_output(prev_value)
+
+        curr_value = statistic[key].get('curr_value', None)
+        curr_value = _modify_values_for_output(curr_value)
+
+        if statistic[key]['status'] == 'same':
+            result_list.append(f'    {key}: {curr_value}')
+        elif statistic[key]['status'] == 'removed':
+            result_list.append(f'  - {key}: {prev_value}')
+        elif statistic[key]['status'] == 'added':
+            result_list.append(f'  + {key}: {curr_value}')
+        elif statistic[key]['status'] == 'changed':
+            result_list.append(f'  - {key}: {prev_value}')
+            result_list.append(f'  + {key}: {curr_value}')
         else:
             raise Exception('Smth has gone wrong!')
 
