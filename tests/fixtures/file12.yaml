@@ -1,0 +1,3 @@
+timeout: 20
+verbose: !!bool yes
+host: hexlet.io

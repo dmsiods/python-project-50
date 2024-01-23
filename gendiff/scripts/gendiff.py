@@ -1,26 +1,20 @@
 #!usr/bin/env python3
 import argparse
-import json
+
+from gendiff.tools.file_readers import read_data_from_file
 
 
 def main():
     parser = argparse.ArgumentParser(
         description='Compares two configuration files and shows a difference.')
-    parser.add_argument('--first_file', default='data/file1.json')
-    parser.add_argument('--second_file', default='data/file2.json')
+    parser.add_argument('first_file')
+    parser.add_argument('second_file')
     parser.add_argument('-f', '--format', metavar='FORMAT',
                         help='set format of output')
 
     args = parser.parse_args()
 
     return generate_diff(args.first_file, args.second_file)
-
-
-def _get_json_by_path(json_path):
-    with open(json_path) as file:
-        data = json.load(file)
-
-    return data
 
 
 def _get_data_statistic(old_data, new_data):
@@ -81,8 +75,8 @@ def _generate_result_string(statistic):
 
 
 def generate_diff(file_path1, file_path2):
-    old_data = _get_json_by_path(file_path1)
-    new_data = _get_json_by_path(file_path2)
+    old_data = read_data_from_file(file_path1)
+    new_data = read_data_from_file(file_path2)
 
     statistic = _get_data_statistic(old_data, new_data)
 
