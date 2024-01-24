@@ -27,7 +27,8 @@ def create_diff(prev_data, curr_data):
     for key in union_keys:
         if key in prev_keys and key in curr_keys:
 
-            if isinstance(prev_data[key], dict) and isinstance(curr_data[key], dict):
+            if (isinstance(prev_data[key], dict)
+                    and isinstance(curr_data[key], dict)):
 
                 if prev_data[key] == curr_data[key]:
                     diff[key] = {'status': 'same', 'curr_value': curr_data[key]}
@@ -82,7 +83,9 @@ def stringify_dict(data, base_prefix='', space_pattern='    '):
             else:
                 value_string = helper(data_elem[key], level + 1)
 
-            result_list.append(f'{base_prefix}{level_prefix}{space_pattern}{key}: {value_string}')
+            result = f'{base_prefix}{level_prefix}{space_pattern}{key}:' \
+                     f' {value_string}'
+            result_list.append(result)
 
         result_list.append(f'{base_prefix}{level_prefix}' + '}')
 
@@ -91,7 +94,13 @@ def stringify_dict(data, base_prefix='', space_pattern='    '):
     return helper(data)
 
 
-def gen_atomic_string(level_prefix, key, status, prev_value_str=None, curr_value_str=None):
+def gen_atomic_string(
+        level_prefix,
+        key,
+        status,
+        prev_value_str=None,
+        curr_value_str=None
+):
     result_list = []
 
     if status == 'same':
@@ -121,19 +130,34 @@ def stringify_diff(diff, space_pattern='    '):
             key_curr_value = diff_elem[key].get('curr_value')
 
             if isinstance(key_prev_value, dict):
-                key_prev_value_str = stringify_dict(key_prev_value, level_prefix)
+                key_prev_value_str = stringify_dict(
+                    key_prev_value, level_prefix
+                )
             else:
                 key_prev_value_str = _modify_value_for_output(key_prev_value)
 
             if 'children' in diff_elem[key]:
                 key_status = 'same'
-                key_curr_value_str = helper(diff_elem[key]['children'], level + 1)
+                key_curr_value_str = helper(
+                    diff_elem[key]['children'],
+                    level + 1
+                )
             elif isinstance(key_curr_value, dict):
-                key_curr_value_str = stringify_dict(key_curr_value, level_prefix)
+                key_curr_value_str = stringify_dict(
+                    key_curr_value,
+                    level_prefix
+                )
             else:
                 key_curr_value_str = _modify_value_for_output(key_curr_value)
 
-            result_list.extend(gen_atomic_string(level_prefix, key, key_status, key_prev_value_str, key_curr_value_str))
+            atomic_result = gen_atomic_string(
+                level_prefix,
+                key,
+                key_status,
+                key_prev_value_str,
+                key_curr_value_str
+            )
+            result_list.extend(atomic_result)
 
         result_list.append(level_prefix + '}')
 
