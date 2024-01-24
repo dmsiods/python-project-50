@@ -17,32 +17,49 @@ def main():
     return generate_diff(args.first_file, args.second_file)
 
 
-def _get_data_statistic(old_data, new_data):
-    statistic = {}
+def create_diff(prev_data, curr_data):
+    diff = {}
 
-    old_keys = set(old_data.keys())
-    new_keys = set(new_data.keys())
-    union_keys = new_keys.union(old_keys)
+    prev_keys = set(prev_data.keys())
+    curr_keys = set(curr_data.keys())
+    union_keys = curr_keys.union(prev_keys)
 
     for key in union_keys:
-        if key in old_keys and key in new_keys:
-            if old_data[key] == new_data[key]:
-                statistic[key] = {'status': 'same', 'curr_value': new_data[key]}
+        if key in prev_keys and key in curr_keys:
+
+            if isinstance(prev_data[key], dict) and isinstance(curr_data[key], dict):
+
+                if prev_data[key] == curr_data[key]:
+                    diff[key] = {'status': 'same', 'curr_value': curr_data[key]}
+                else:
+                    diff[key] = {
+                        'status': 'changed',
+                        'children': create_diff(prev_data[key], curr_data[key])
+                    }
+
+            elif prev_data[key] == curr_data[key]:
+                diff[key] = {'status': 'same', 'curr_value': curr_data[key]}
+
             else:
-                statistic[key] = {
+                diff[key] = {
                     'status': 'changed',
-                    'prev_value': old_data[key],
-                    'curr_value': new_data[key],
+                    'pre_value': prev_data[key],
+                    'curr_value': curr_data[key]
                 }
-        elif key in old_keys:
-            statistic[key] = {'status': 'removed', 'prev_value': old_data[key]}
+
+        elif key in prev_keys:
+            diff[key] = {'status': 'removed', 'prev_value': prev_data[key]}
+
+        elif key in curr_keys:
+            diff[key] = {'status': 'added', 'curr_value': curr_data[key]}
+
         else:
-            statistic[key] = {'status': 'added', 'curr_value': new_data[key]}
+            raise Exception('Smth has gone wrong!!!')
 
-    return statistic
+    return diff
 
 
-def _modify_values_for_output(value):
+def _modify_value_for_output(value):
     result = value
 
     if isinstance(value, bool):
@@ -50,43 +67,88 @@ def _modify_values_for_output(value):
     elif value is None:
         result = 'null'
 
-    return result
+    return str(result)
 
 
-def _generate_result_string(statistic):
-    result_list = ['{']
+def stringify_dict(data, base_prefix='', space_pattern='    '):
 
-    for key in sorted(statistic.keys()):
-        prev_value = statistic[key].get('prev_value', None)
-        prev_value = _modify_values_for_output(prev_value)
+    def helper(data_elem, level=1):
+        result_list = ['{']
+        level_prefix = space_pattern * level
 
-        curr_value = statistic[key].get('curr_value', None)
-        curr_value = _modify_values_for_output(curr_value)
+        for key in data_elem.keys():
+            if not isinstance(data_elem[key], dict):
+                value_string = _modify_value_for_output(data_elem[key])
+            else:
+                value_string = helper(data_elem[key], level + 1)
 
-        if statistic[key]['status'] == 'same':
-            result_list.append(f'    {key}: {curr_value}')
-        elif statistic[key]['status'] == 'removed':
-            result_list.append(f'  - {key}: {prev_value}')
-        elif statistic[key]['status'] == 'added':
-            result_list.append(f'  + {key}: {curr_value}')
-        elif statistic[key]['status'] == 'changed':
-            result_list.append(f'  - {key}: {prev_value}')
-            result_list.append(f'  + {key}: {curr_value}')
-        else:
-            raise Exception('Smth has gone wrong!')
+            result_list.append(f'{base_prefix}{level_prefix}{space_pattern}{key}: {value_string}')
 
-    result_list.append('}')
+        result_list.append(f'{base_prefix}{level_prefix}' + '}')
 
-    return '\n'.join(result_list)
+        return '\n'.join(result_list)
+
+    return helper(data)
+
+
+def gen_atomic_string(level_prefix, key, status, prev_value_str=None, curr_value_str=None):
+    result_list = []
+
+    if status == 'same':
+        result_list.append(f'{level_prefix}    {key}: {curr_value_str}')
+    elif status == 'removed':
+        result_list.append(f'{level_prefix}  - {key}: {prev_value_str}')
+    elif status == 'added':
+        result_list.append(f'{level_prefix}  + {key}: {curr_value_str}')
+    elif status == 'changed':
+        result_list.append(f'{level_prefix}  - {key}: {prev_value_str}')
+        result_list.append(f'{level_prefix}  + {key}: {curr_value_str}')
+    else:
+        raise Exception('Smth has gone wrong!')
+
+    return result_list
+
+
+def stringify_diff(diff, space_pattern='    '):
+
+    def helper(diff_elem, level=0):
+        level_prefix = space_pattern * level
+        result_list = ['{']
+
+        for key in sorted(diff_elem.keys()):
+            key_status = diff_elem[key]['status']
+            key_prev_value = diff_elem[key].get('prev_value')
+            key_curr_value = diff_elem[key].get('curr_value')
+
+            if isinstance(key_prev_value, dict):
+                key_prev_value_str = stringify_dict(key_prev_value, level_prefix)
+            else:
+                key_prev_value_str = _modify_value_for_output(key_prev_value)
+
+            if 'children' in diff_elem[key]:
+                key_status = 'same'
+                key_curr_value_str = helper(diff_elem[key]['children'], level + 1)
+            elif isinstance(key_curr_value, dict):
+                key_curr_value_str = stringify_dict(key_curr_value, level_prefix)
+            else:
+                key_curr_value_str = _modify_value_for_output(key_curr_value)
+
+            result_list.extend(gen_atomic_string(level_prefix, key, key_status, key_prev_value_str, key_curr_value_str))
+
+        result_list.append(level_prefix + '}')
+
+        return '\n'.join(result_list)
+
+    return helper(diff)
 
 
 def generate_diff(file_path1, file_path2):
-    old_data = read_data_from_file(file_path1)
-    new_data = read_data_from_file(file_path2)
+    prev_data = read_data_from_file(file_path1)
+    curr_data = read_data_from_file(file_path2)
 
-    statistic = _get_data_statistic(old_data, new_data)
+    data_diff = create_diff(prev_data, curr_data)
 
-    return _generate_result_string(statistic)
+    return stringify_diff(data_diff)
 
 
 if __name__ == '__main__':
