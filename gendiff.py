@@ -59,27 +59,27 @@ def create_diff(prev_data, curr_data):
     return diff
 
 
-def stringify_dict(data, level_space='    '):
-    def helper(data_elem, level=0):
+def stringify_dict(data, base_prefix='', level_space='    '):
+    def helper(data_elem, level=1):
         result_list = ['{']
         prefix = level_space * level
 
         for key in data_elem.keys():
             if not isinstance(data_elem[key], dict):
-                value_string = _modify_values_for_output(data_elem[key])
+                value_string = _modify_value_for_output(data_elem[key])
             else:
                 value_string = helper(data_elem[key], level + 1)
 
-            result_list.append(f'{prefix}{level_space}{key}: {value_string}')
+            result_list.append(f'{base_prefix}{prefix}{level_space}{key}: {value_string}')
 
-        result_list.append(prefix + '}')
+        result_list.append(f'{base_prefix}{prefix}' + '}')
 
         return '\n'.join(result_list)
 
     return helper(data)
 
 
-def _modify_values_for_output(value):
+def _modify_value_for_output(value):
     result = value
 
     if isinstance(value, bool):
@@ -87,67 +87,79 @@ def _modify_values_for_output(value):
     elif value is None:
         result = 'null'
 
-    return result
+    return str(result)
 
 
-def _generate_elem_result_string(status, key, key_stat):
-    if not isinstance(key_stat, dict):
-        return [f'    {key}: {key_stat}']
+# def _prepare_diff_value_for_output(diff_value):
+#     if isinstance(diff_value, dict):
+#         diff_value_string = stringify_dict(diff_value)
+#     else:
+#         diff_value_string = _modify_value_for_output(diff_value)
+#
+#     return diff_value_string
 
-    prev_value = key_stat.get('prev_value', None)
-    prev_value = _modify_values_for_output(prev_value)
 
-    curr_value = key_stat.get('curr_value', None)
-    curr_value = _modify_values_for_output(curr_value)
-
+def gen_atomic_string(prefix, key, status, prev_value_str=None, curr_value_str=None):
     result_list = []
 
-    if key_stat['status'] == 'same':
-        result_list.append(f'    {key}: {curr_value}')
-    elif key_stat['status'] == 'removed':
-        result_list.append(f'  - {key}: {prev_value}')
-    elif key_stat['status'] == 'added':
-        result_list.append(f'  + {key}: {curr_value}')
-    elif key_stat['status'] == 'changed':
-        result_list.append(f'  - {key}: {prev_value}')
-        result_list.append(f'  + {key}: {curr_value}')
+    if status == 'same':
+        result_list.append(f'{prefix}    {key}: {curr_value_str}')
+    elif status == 'removed':
+        result_list.append(f'{prefix}  - {key}: {prev_value_str}')
+    elif status == 'added':
+        result_list.append(f'{prefix}  + {key}: {curr_value_str}')
+    elif status == 'changed':
+        result_list.append(f'{prefix}  - {key}: {prev_value_str}')
+        result_list.append(f'{prefix}  + {key}: {curr_value_str}')
     else:
         raise Exception('Smth has gone wrong!')
 
     return result_list
 
 
-# def stringify_diff(diff, level_space='    '):
-#     def helper(diff_elem, level=0):
-#         prefix = level_space * level
-#         result_list = ['{']
-#
-#         for key in sorted(diff_elem.keys()):
-#             if 'children' in diff_elem[key]:
-#                 result_list.extend(helper(diff_elem[key]['children'], level + 1))
-#             else:
-#
-#
-#             key_result = helper(elem[key], level + 1)
-#             result_list.extend(_generate_elem_result_string(key, key_result))
-#
-#         result_list.append(prefix + '}')
-#
-#         return '\n'.join(result_list)
-#
-#     return helper(diff)
+def stringify_diff(diff, level_space='    '):
+
+    def helper(diff_elem, level=0):
+        prefix = level_space * level
+        result_list = ['{']
+
+        for key in sorted(diff_elem.keys()):
+            key_status = diff_elem[key]['status']
+            key_prev_value = diff_elem[key].get('prev_value')
+            key_curr_value = diff_elem[key].get('curr_value')
+
+            if isinstance(key_prev_value, dict):
+                key_prev_value_str = stringify_dict(key_prev_value, prefix)
+            else:
+                key_prev_value_str = _modify_value_for_output(key_prev_value)
+
+            if 'children' in diff_elem[key]:
+                key_status = 'same'
+                key_curr_value_str = helper(diff_elem[key]['children'], level + 1)
+            elif isinstance(key_curr_value, dict):
+                key_curr_value_str = stringify_dict(key_curr_value, prefix)
+            else:
+                key_curr_value_str = _modify_value_for_output(key_curr_value)
+
+            result_list.extend(gen_atomic_string(prefix, key, key_status, key_prev_value_str, key_curr_value_str))
+
+        result_list.append(prefix + '}')
+
+        return '\n'.join(result_list)
+
+    return helper(diff)
 
 
 def generate_diff(file_path1, file_path2):
     prev_data = read_data_from_file(file_path1)
     curr_data = read_data_from_file(file_path2)
 
-    print(stringify_dict(prev_data))
+    # print(stringify_dict(prev_data))
 
-    # data_diff = create_diff(prev_data, curr_data)
+    data_diff = create_diff(prev_data, curr_data)
     # print(data_diff)
 
-    # return stringify_diff(data_diff)
+    return stringify_diff(data_diff)
 
 
 if __name__ == '__main__':
