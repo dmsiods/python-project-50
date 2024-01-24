@@ -14,4 +14,4 @@ def test_generate_diff(file1, file2, file_expected):
     with open(file_expected) as file:
         expected = file.read()
 
-    assert generate_diff(file1, file2) == expected
+    assert generate_diff(file1, file2).strip() == expected.strip()

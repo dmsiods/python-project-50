@@ -44,7 +44,7 @@ def create_diff(prev_data, curr_data):
             else:
                 diff[key] = {
                     'status': 'changed',
-                    'pre_value': prev_data[key],
+                    'prev_value': prev_data[key],
                     'curr_value': curr_data[key]
                 }
 
