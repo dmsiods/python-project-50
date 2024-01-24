@@ -9,12 +9,12 @@ def main():
         description='Compares two configuration files and shows a difference.')
     parser.add_argument('first_file')
     parser.add_argument('second_file')
-    parser.add_argument('-f', '--format', metavar='FORMAT',
+    parser.add_argument('-f', '--format', default='stylish', metavar='FORMAT',
                         help='set format of output')
 
     args = parser.parse_args()
 
-    return generate_diff(args.first_file, args.second_file)
+    return generate_diff(args.first_file, args.second_file, args.format)
 
 
 def create_diff(prev_data, curr_data):
@@ -118,7 +118,7 @@ def gen_atomic_string(
     return result_list
 
 
-def stringify_diff(diff, space_pattern='    '):
+def stylish_format(diff, space_pattern='    '):
 
     def helper(diff_elem, level=0):
         level_prefix = space_pattern * level
@@ -166,13 +166,18 @@ def stringify_diff(diff, space_pattern='    '):
     return helper(diff)
 
 
-def generate_diff(file_path1, file_path2):
+def generate_diff(file_path1, file_path2, output_format='stylish'):
     prev_data = read_data_from_file(file_path1)
     curr_data = read_data_from_file(file_path2)
 
     data_diff = create_diff(prev_data, curr_data)
 
-    return stringify_diff(data_diff)
+    diff_string = None
+
+    if output_format == 'stylish':
+        diff_string = stylish_format(data_diff)
+
+    return diff_string
 
 
 if __name__ == '__main__':
