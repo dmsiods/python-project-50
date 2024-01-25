@@ -17,7 +17,7 @@ def main():
 
     args = parser.parse_args()
 
-    return generate_diff(args.first_file, args.second_file, args.format)
+    print(generate_diff(args.first_file, args.second_file, args.format))
 
 
 def create_diff(prev_data, curr_data):
@@ -81,4 +81,4 @@ def generate_diff(file_path1, file_path2, output_format='stylish'):
 
 
 if __name__ == '__main__':
-    print(main())
+    main()
