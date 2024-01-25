@@ -81,4 +81,4 @@ def generate_diff(file_path1, file_path2, output_format='stylish'):
 
 
 if __name__ == '__main__':
-    main()
+    print(main())
