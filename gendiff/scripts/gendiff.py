@@ -3,6 +3,7 @@ import argparse
 
 from gendiff.tools.file_readers import read_data_from_file
 from gendiff.tools.stylish_formatter import stylish_format
+from gendiff.tools.plain_formatter import plain_format
 
 
 def main():
@@ -66,11 +67,12 @@ def generate_diff(file_path1, file_path2, output_format='stylish'):
     curr_data = read_data_from_file(file_path2)
 
     data_diff = create_diff(prev_data, curr_data)
-
     diff_string = ''
 
     if output_format == 'stylish':
         diff_string = stylish_format(data_diff)
+    elif output_format == 'plain':
+        diff_string = plain_format(data_diff)
 
     return diff_string
 
