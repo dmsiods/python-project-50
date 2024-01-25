@@ -1,0 +1,98 @@
+{
+    "common": {
+        "children": {
+            "follow": {
+                "curr_value": false,
+                "status": "added"
+            },
+            "setting1": {
+                "curr_value": "Value 1",
+                "status": "same"
+            },
+            "setting2": {
+                "prev_value": 200,
+                "status": "removed"
+            },
+            "setting3": {
+                "curr_value": null,
+                "prev_value": true,
+                "status": "changed"
+            },
+            "setting4": {
+                "curr_value": "blah blah",
+                "status": "added"
+            },
+            "setting5": {
+                "curr_value": {
+                    "key5": "value5"
+                },
+                "status": "added"
+            },
+            "setting6": {
+                "children": {
+                    "doge": {
+                        "children": {
+                            "wow": {
+                                "curr_value": "so much",
+                                "prev_value": "",
+                                "status": "changed"
+                            }
+                        },
+                        "status": "changed"
+                    },
+                    "key": {
+                        "curr_value": "value",
+                        "status": "same"
+                    },
+                    "ops": {
+                        "curr_value": "vops",
+                        "status": "added"
+                    }
+                },
+                "status": "changed"
+            }
+        },
+        "status": "changed"
+    },
+    "group1": {
+        "children": {
+            "baz": {
+                "curr_value": "bars",
+                "prev_value": "bas",
+                "status": "changed"
+            },
+            "foo": {
+                "curr_value": "bar",
+                "status": "same"
+            },
+            "nest": {
+                "curr_value": "str",
+                "prev_value": {
+                    "key": "value"
+                },
+                "status": "changed"
+            }
+        },
+        "status": "changed"
+    },
+    "group2": {
+        "prev_value": {
+            "abc": 12345,
+            "deep": {
+                "id": 45
+            }
+        },
+        "status": "removed"
+    },
+    "group3": {
+        "curr_value": {
+            "deep": {
+                "id": {
+                    "number": 45
+                }
+            },
+            "fee": 100500
+        },
+        "status": "added"
+    }
+}
