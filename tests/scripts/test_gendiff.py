@@ -15,6 +15,10 @@ import pytest
          'tests/fixtures/result2_plain.txt', 'plain'),
         ('tests/fixtures/file21.json', 'tests/fixtures/file22.json',
          'tests/fixtures/result2_json.txt', 'json'),
+        ('tests/fixtures/file1.json', 'tests/fixtures/file2.json',
+         'tests/fixtures/result_stylish', 'stylish'),
+        ('tests/fixtures/file1.yml', 'tests/fixtures/file2.yml',
+         'tests/fixtures/result_plain', 'plain'),
     ]
 )
 def test_generate_diff(file1, file2, file_expected, output_format):
