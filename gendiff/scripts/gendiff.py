@@ -4,6 +4,7 @@ import argparse
 from gendiff.tools.file_readers import read_data_from_file
 from gendiff.tools.stylish_formatter import stylish_format
 from gendiff.tools.plain_formatter import plain_format
+from gendiff.tools.json_formatter import json_format
 
 
 def main():
@@ -73,6 +74,8 @@ def generate_diff(file_path1, file_path2, output_format='stylish'):
         diff_string = stylish_format(data_diff)
     elif output_format == 'plain':
         diff_string = plain_format(data_diff)
+    elif output_format == 'json':
+        diff_string = json_format(data_diff)
 
     return diff_string
 
